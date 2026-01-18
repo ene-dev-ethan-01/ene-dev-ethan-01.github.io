@@ -41,7 +41,7 @@
       async function main() {
         try {
           // 1. 初始化 LIFF (記得換成你的 LIFF ID)
-          await liff.init({ liffId: "你的_LIFF_ID" });
+          await liff.init({ liffId: "2008384616-2W4GzZeB" });
 
           // 2. 判斷是否登入
           if (!liff.isLoggedIn()) {
@@ -63,21 +63,24 @@
 
             // 注意：這裡換成你之後架好的後端 API 地址
             // 如果你還沒寫後端，可以先註解掉這段來測試跳轉
-            await fetch("https://你的後端網址.com/api/save_referral", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                new_user: currentUserId,
-                referrer: referrerId,
-              }),
-            }).catch((err) =>
+            await fetch(
+              "https://line-flower-shop-f54f9c20b157.herokuapp.com/api/save_referral",
+              {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  new_user: currentUserId,
+                  referrer: referrerId,
+                }),
+              }
+            ).catch((err) =>
               console.log("API 傳送失敗，可能是還沒架好後端:", err)
             );
           }
 
           // 6. 成功後導向官方帳號加好友連結
           // 記得換成你的官方帳號連結 (@your_id)
-          window.location.href = "https://line.me/R/ti/p/@你的官方帳號ID";
+          window.location.href = "https://line.me/R/ti/p/@638ccvfy";
         } catch (error) {
           document.getElementById("status").innerHTML =
             "<h2>發生錯誤</h2><p>" + error + "</p>";
