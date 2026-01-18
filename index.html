@@ -43,36 +43,32 @@
           // 1. 初始化 LIFF
           await liff.init({ liffId: "2008384616-2W4GzZeB" });
 
-          // 2. 判斷是否登入
           if (!liff.isLoggedIn()) {
             liff.login();
             return;
           }
 
-          // 3. 取得自己的 profile
           const profile = await liff.getProfile();
           const currentUserId = profile.userId;
 
-          // 4. 取得推薦人 ID (增加相容性抓取)
-          let urlParams = new URLSearchParams(window.location.search);
+          // 2. 終極參數抓取 (解決所有轉址遺失問題)
+          const search = liff.getSearch() || window.location.search;
+          const urlParams = new URLSearchParams(search);
           let referrerId = urlParams.get("ref");
 
-          // 如果標準方法抓不到，嘗試從 liff.getSearch() 抓取 (解決 LIFF 轉址丟失參數問題)
-          if (!referrerId) {
-            const liffSearch = liff.getSearch();
-            if (liffSearch) {
-              const liffParams = new URLSearchParams(liffSearch);
-              referrerId = liffParams.get("ref");
-            }
-          }
+          // 畫面顯示進度 (Debug 用)
+          document.getElementById("status").innerHTML = `
+            <div style="text-align:left; padding:20px;">
+                <p>👤 用戶: ${currentUserId.substring(0, 8)}...</p>
+                <p>🔗 推薦人: ${referrerId || "無"}</p>
+                <p id="api-step">⏳ 準備通訊...</p>
+            </div>
+        `;
 
-          console.log("當前用戶:", currentUserId, "推薦人:", referrerId);
-
-          // 5. 邏輯檢查與傳送資料
-          // 增加檢查：referrerId 存在、且不是自己推薦自己
+          // 3. 呼叫 API (嚴格等待結果)
           if (referrerId && currentUserId && referrerId !== currentUserId) {
-            document.getElementById("status").innerHTML =
-              "<h2>正在記錄推薦資訊...</h2>";
+            document.getElementById("api-step").innerText =
+              "🚀 正在寫入推薦紀錄...";
 
             try {
               const response = await fetch(
@@ -88,24 +84,29 @@
               );
 
               if (response.ok) {
-                console.log("後端儲存成功");
+                document.getElementById("api-step").innerText =
+                  "✅ 紀錄成功！正在導向...";
+                console.log("Save Success");
               } else {
-                console.error("後端回應錯誤:", response.status);
+                document.getElementById("api-step").innerText =
+                  "⚠️ 紀錄失敗，但即將跳轉...";
               }
             } catch (err) {
-              console.error("API 傳送發生網路錯誤:", err);
+              console.error("API Error:", err);
+              document.getElementById("api-step").innerText =
+                "❌ 網路錯誤，即將跳轉...";
             }
           } else {
-            console.log("無有效推薦資訊或為本人操作，跳過儲存階段");
+            document.getElementById("api-step").innerText =
+              "ℹ️ 無推薦資訊，直接跳轉...";
           }
 
-          // 6. 最終導向 (確保前面的 await 都做完了才執行)
-          // 加入一個極短的延遲，確保瀏覽器請求緩衝區已清空
+          // 4. 最後才跳轉 (延遲 800ms 確保封包送出)
           setTimeout(() => {
             window.location.href = "https://line.me/R/ti/p/@638ccvfy";
-          }, 500);
+          }, 800);
         } catch (error) {
-          console.error("LIFF Main Error:", error);
+          console.error(error);
           document.getElementById("status").innerHTML =
             "<h2>發生錯誤</h2><p>" + error + "</p>";
         }
