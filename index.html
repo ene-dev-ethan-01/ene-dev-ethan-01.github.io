@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>歡迎加入我們的 LINE</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+      body {
+        font-family: sans-serif;
+        text-align: center;
+        padding-top: 50px;
+      }
+      .loader {
+        border: 16px solid #f3f3f3;
+        border-top: 16px solid #3498db;
+        border-radius: 50%;
+        width: 60px;
+        height: 60px;
+        animation: spin 2s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="status">
+      <h2>正在驗證推薦資訊...</h2>
+      <div class="loader"></div>
+      <p>請稍候，即將為您導向至 LINE 官方帳號</p>
+    </div>
+
+    <script>
+      async function main() {
+        try {
+          // 1. 初始化 LIFF (記得換成你的 LIFF ID)
+          await liff.init({ liffId: "你的_LIFF_ID" });
+
+          // 2. 判斷是否登入
+          if (!liff.isLoggedIn()) {
+            liff.login();
+            return;
+          }
+
+          // 3. 取得自己的 profile (新用戶的 ID)
+          const profile = await liff.getProfile();
+          const currentUserId = profile.userId;
+
+          // 4. 取得 URL 裡的推薦人 ID (?ref=XXX)
+          const urlParams = new URLSearchParams(window.location.search);
+          const referrerId = urlParams.get("ref");
+
+          // 5. 如果有推薦人，就把資料傳給你的後端 API
+          if (referrerId && currentUserId) {
+            console.log("發現推薦關係:", referrerId, "->", currentUserId);
+
+            // 注意：這裡換成你之後架好的後端 API 地址
+            // 如果你還沒寫後端，可以先註解掉這段來測試跳轉
+            await fetch("https://你的後端網址.com/api/save_referral", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                new_user: currentUserId,
+                referrer: referrerId,
+              }),
+            }).catch((err) =>
+              console.log("API 傳送失敗，可能是還沒架好後端:", err)
+            );
+          }
+
+          // 6. 成功後導向官方帳號加好友連結
+          // 記得換成你的官方帳號連結 (@your_id)
+          window.location.href = "https://line.me/R/ti/p/@你的官方帳號ID";
+        } catch (error) {
+          document.getElementById("status").innerHTML =
+            "<h2>發生錯誤</h2><p>" + error + "</p>";
+        }
+      }
+
+      main();
+    </script>
+  </body>
+</html>
