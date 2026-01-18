@@ -3,38 +3,291 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>歡迎加入我們的 LINE</title>
+    <title>花禮推薦驗證</title>
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
+      :root {
+        --bg1: #fff7fb;
+        --bg2: #f6fbff;
+        --card: #ffffffcc;
+        --text: #1f2937;
+        --muted: #6b7280;
+        --accent: #e85d8f;
+        --accent2: #4aa3df;
+        --ok: #16a34a;
+        --warn: #f59e0b;
+        --err: #ef4444;
+        --shadow: 0 20px 50px rgba(31, 41, 55, 0.12);
+        --radius: 22px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
       body {
-        font-family: sans-serif;
-        text-align: center;
-        padding-top: 50px;
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: ui-sans-serif, system-ui, -apple-system, "Noto Sans TC",
+          "Segoe UI", Roboto, Arial, sans-serif;
+        color: var(--text);
+        background: radial-gradient(
+            1200px 700px at 20% 0%,
+            #ffd7e6 0%,
+            rgba(255, 215, 230, 0) 55%
+          ),
+          radial-gradient(
+            900px 600px at 90% 20%,
+            #d7f0ff 0%,
+            rgba(215, 240, 255, 0) 55%
+          ),
+          linear-gradient(180deg, var(--bg1), var(--bg2));
+        padding: 24px;
       }
-      .loader {
-        border: 16px solid #f3f3f3;
-        border-top: 16px solid #3498db;
+
+      .wrap {
+        width: min(420px, 100%);
+      }
+
+      .card {
+        background: var(--card);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.55);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .hero {
+        padding: 22px 22px 16px 22px;
+        position: relative;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .logo {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: radial-gradient(
+            circle at 30% 30%,
+            #fff 0 20%,
+            rgba(255, 255, 255, 0) 35%
+          ),
+          linear-gradient(135deg, var(--accent), #ffb4cf);
+        box-shadow: 0 10px 25px rgba(232, 93, 143, 0.25);
+        position: relative;
+        overflow: hidden;
+      }
+      .logo:before {
+        content: "";
+        position: absolute;
+        inset: -30%;
+        background: radial-gradient(
+          circle at 30% 30%,
+          rgba(255, 255, 255, 0.9),
+          rgba(255, 255, 255, 0) 55%
+        );
+        transform: rotate(20deg);
+      }
+
+      .title {
+        line-height: 1.2;
+      }
+      .title h1 {
+        font-size: 16px;
+        margin: 0 0 4px 0;
+        letter-spacing: 0.4px;
+      }
+      .title p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .divider {
+        height: 1px;
+        background: linear-gradient(
+          90deg,
+          rgba(232, 93, 143, 0),
+          rgba(232, 93, 143, 0.35),
+          rgba(74, 163, 223, 0.35),
+          rgba(74, 163, 223, 0)
+        );
+        margin: 12px 0 0 0;
+      }
+
+      .content {
+        padding: 18px 22px 22px 22px;
+      }
+
+      .statusRow {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .spinner {
+        width: 44px;
+        height: 44px;
         border-radius: 50%;
-        width: 60px;
-        height: 60px;
-        animation: spin 2s linear infinite;
-        margin: 20px auto;
+        border: 4px solid rgba(74, 163, 223, 0.18);
+        border-top-color: rgba(232, 93, 143, 0.85);
+        animation: spin 1s linear infinite;
+        flex: 0 0 auto;
+        margin-top: 2px;
       }
+
       @keyframes spin {
-        0% {
-          transform: rotate(0deg);
-        }
-        100% {
+        to {
           transform: rotate(360deg);
+        }
+      }
+
+      .msg h2 {
+        font-size: 15px;
+        margin: 0 0 6px 0;
+      }
+      .msg p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        margin-top: 14px;
+        border: 1px solid rgba(31, 41, 55, 0.08);
+        background: rgba(255, 255, 255, 0.65);
+      }
+
+      .dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: var(--accent2);
+        box-shadow: 0 0 0 6px rgba(74, 163, 223, 0.15);
+      }
+
+      .subnote {
+        margin-top: 14px;
+        font-size: 12px;
+        color: rgba(107, 114, 128, 0.95);
+        line-height: 1.5;
+      }
+
+      .footer {
+        padding: 14px 22px 18px 22px;
+        background: rgba(255, 255, 255, 0.55);
+        border-top: 1px solid rgba(31, 41, 55, 0.06);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .badge {
+        font-size: 12px;
+        padding: 8px 10px;
+        border-radius: 999px;
+        background: rgba(232, 93, 143, 0.1);
+        border: 1px solid rgba(232, 93, 143, 0.22);
+        color: rgba(232, 93, 143, 0.95);
+        white-space: nowrap;
+      }
+
+      /* 狀態顏色（成功/警告/錯誤） */
+      .state-ok .dot {
+        background: var(--ok);
+        box-shadow: 0 0 0 6px rgba(22, 163, 74, 0.14);
+      }
+      .state-warn .dot {
+        background: var(--warn);
+        box-shadow: 0 0 0 6px rgba(245, 158, 11, 0.16);
+      }
+      .state-err .dot {
+        background: var(--err);
+        box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.16);
+      }
+
+      .state-ok .spinner,
+      .state-warn .spinner,
+      .state-err .spinner {
+        animation-duration: 1.2s;
+      }
+
+      /* 小螢幕更舒適 */
+      @media (max-width: 360px) {
+        .content {
+          padding: 16px 18px 20px 18px;
+        }
+        .hero {
+          padding: 20px 18px 14px 18px;
+        }
+        .footer {
+          padding: 12px 18px 16px 18px;
         }
       }
     </style>
   </head>
+
   <body>
-    <div id="status">
-      <h2>正在驗證推薦資訊...</h2>
-      <div class="loader"></div>
-      <p>請稍候，即將為您導向至 LINE 官方帳號</p>
+    <div class="wrap">
+      <div class="card" id="card">
+        <div class="hero">
+          <div class="brand">
+            <div class="logo" aria-hidden="true"></div>
+            <div class="title">
+              <h1>花禮推薦驗證中</h1>
+              <p>正在確認推薦資訊，完成後將為您導向官方帳號</p>
+            </div>
+          </div>
+          <div class="divider"></div>
+        </div>
+
+        <div class="content">
+          <div class="statusRow">
+            <div class="spinner" id="spinner" aria-hidden="true"></div>
+            <div class="msg">
+              <h2 id="headline">請稍候…</h2>
+              <p id="desc">
+                我們正在為您完成加入前的推薦確認，確保權益與服務能正確對應。
+              </p>
+
+              <div class="pill" id="pill">
+                <span class="dot" id="dot" aria-hidden="true"></span>
+                <span id="stepText">連線準備中</span>
+              </div>
+
+              <div class="subnote" id="subnote">
+                若您沒有推薦資訊，也可以正常加入並開始選購花禮。
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div class="hint">LINE LIFF 安全驗證</div>
+          <div class="badge">Florist Referral</div>
+        </div>
+      </div>
     </div>
 
     <script>
@@ -43,17 +296,32 @@
       const API_URL =
         "https://line-flower-shop-f54f9c20b157.herokuapp.com/api/save_referral";
 
+      function setState(type, headline, desc, stepText) {
+        const card = document.getElementById("card");
+        card.classList.remove("state-ok", "state-warn", "state-err");
+        if (type) card.classList.add(type);
+
+        document.getElementById("headline").innerText = headline || "";
+        document.getElementById("desc").innerText = desc || "";
+        document.getElementById("stepText").innerText = stepText || "";
+
+        // 成功/警告/錯誤時，轉慢一點更有質感
+        const spinner = document.getElementById("spinner");
+        if (type === "state-ok") spinner.style.animationDuration = "1.4s";
+        if (type === "state-warn") spinner.style.animationDuration = "1.6s";
+        if (type === "state-err") spinner.style.animationDuration = "1.8s";
+      }
+
       function getRefFromUrl() {
-        // 1) 先抓正常 query: ?ref=KOL
+        // 1) 直接 query ?ref=KOL
         const params = new URLSearchParams(window.location.search || "");
         const directRef = params.get("ref");
         if (directRef && directRef.trim()) return directRef.trim();
 
-        // 2) 再抓 LIFF 常見的包裝: ?liff.state=%3Fref%3DKOL
+        // 2) LIFF 常把參數包在 liff.state
         const liffState = params.get("liff.state");
         if (liffState) {
-          const decoded = decodeURIComponent(liffState); // 可能是 "?ref=KOL" 或 "something?ref=KOL"
-          // 把裡面的 query 再解析一次
+          const decoded = decodeURIComponent(liffState);
           const q = decoded.includes("?") ? decoded.split("?").pop() : decoded;
           const innerParams = new URLSearchParams(
             q.startsWith("?") ? q.slice(1) : q
@@ -62,7 +330,7 @@
           if (innerRef && innerRef.trim()) return innerRef.trim();
         }
 
-        // 3) 少數情況 ref 在 hash: https://.../#/?ref=KOL
+        // 3) 少數在 hash
         const hash = window.location.hash || "";
         if (hash.includes("ref=")) {
           const hashQuery = hash.includes("?")
@@ -76,20 +344,7 @@
         return null;
       }
 
-      function renderDebug(currentUserId, referrerId, stepText) {
-        document.getElementById("status").innerHTML = `
-          <div style="text-align:left; padding:20px;">
-            <p>👤 用戶: ${
-              currentUserId ? currentUserId.substring(0, 8) + "..." : "尚未取得"
-            }</p>
-            <p>🔗 推薦人: ${referrerId || "無"}</p>
-            <p id="api-step">${stepText || ""}</p>
-          </div>
-        `;
-      }
-
       async function postReferral(newUser, referrer) {
-        // 避免網路卡死：加個 timeout
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 8000);
 
@@ -100,6 +355,11 @@
             body: JSON.stringify({ new_user: newUser, referrer }),
             signal: controller.signal,
           });
+
+          // 讀 body 方便你日後除錯（但不顯示給用戶）
+          const text = await response.text();
+          console.log("API status:", response.status, "body:", text);
+
           return response.ok;
         } finally {
           clearTimeout(timeoutId);
@@ -108,70 +368,101 @@
 
       async function main() {
         try {
-          // A) 先在「登入前」抓 ref，並暫存，避免 login redirect 後丟失
+          // 登入前先抓 ref，避免 login redirect 後遺失
           const refFromUrl = getRefFromUrl();
-          if (refFromUrl) {
-            sessionStorage.setItem("referrerId", refFromUrl);
-          }
+          if (refFromUrl) sessionStorage.setItem("referrerId", refFromUrl);
 
-          // B) 初始化 LIFF
+          setState(
+            null,
+            "請稍候…",
+            "我們正在為您完成加入前的推薦確認，確保權益與服務能正確對應。",
+            "連線準備中"
+          );
+
           await liff.init({ liffId: LIFF_ID });
 
-          // C) 未登入就登入（redirectUri 用當前網址，盡量保留參數）
           if (!liff.isLoggedIn()) {
-            renderDebug(null, refFromUrl, "🔐 尚未登入，準備登入...");
+            setState(
+              null,
+              "正在前往登入…",
+              "為了保護您的資料安全，需要先完成 LINE 登入驗證。",
+              "準備登入"
+            );
             liff.login({ redirectUri: window.location.href });
             return;
           }
 
-          // D) 取得使用者 ID
+          setState(
+            null,
+            "驗證進行中…",
+            "已完成登入，正在確認推薦資訊並建立服務關係。",
+            "取得用戶資訊"
+          );
+
           const profile = await liff.getProfile();
           const currentUserId = profile.userId;
 
-          // E) 登入後再拿一次 ref（優先 URL，其次 sessionStorage）
           const referrerId =
             getRefFromUrl() || sessionStorage.getItem("referrerId");
 
-          renderDebug(currentUserId, referrerId, "⏳ 準備通訊...");
-
-          // F) 寫入推薦關係
           if (referrerId && currentUserId && referrerId !== currentUserId) {
-            document.getElementById("api-step").innerText =
-              "🚀 正在寫入推薦紀錄...";
+            setState(
+              null,
+              "正在建立推薦關係…",
+              "我們正在為您寫入推薦紀錄，完成後會自動導向官方帳號。",
+              "寫入推薦紀錄中"
+            );
 
             try {
               const ok = await postReferral(currentUserId, referrerId);
 
               if (ok) {
-                document.getElementById("api-step").innerText =
-                  "✅ 紀錄成功！正在導向...";
-                console.log("Save Success");
+                setState(
+                  "state-ok",
+                  "完成！",
+                  "推薦資訊已確認完成，接下來將為您導向官方帳號開始選購花禮。",
+                  "推薦紀錄已完成"
+                );
               } else {
-                document.getElementById("api-step").innerText =
-                  "⚠️ 紀錄失敗，但即將跳轉...";
-                console.warn("Save Failed: response not ok");
+                setState(
+                  "state-warn",
+                  "已完成加入準備",
+                  "目前推薦資訊未能成功寫入，但不影響您加入與選購；我們將為您導向官方帳號。",
+                  "即將導向"
+                );
               }
             } catch (err) {
               console.error("API Error:", err);
-              document.getElementById("api-step").innerText = `❌ ${
-                err?.name || "Error"
-              }: ${err?.message || err}，即將跳轉...`;
+              setState(
+                "state-err",
+                "已完成加入準備",
+                "目前網路狀態不穩，推薦資訊可能未寫入；不影響您加入，我們將為您導向官方帳號。",
+                "即將導向"
+              );
             }
           } else {
-            document.getElementById("api-step").innerText =
-              "ℹ️ 無推薦資訊，直接跳轉...";
+            setState(
+              "state-ok",
+              "完成！",
+              "已完成驗證，接下來將為您導向官方帳號開始選購花禮。",
+              "即將導向"
+            );
           }
 
-          // G) 最後跳轉（短延遲）
           setTimeout(() => {
             window.location.replace(OA_URL);
-          }, 800);
+          }, 900);
         } catch (error) {
           console.error(error);
-          document.getElementById("status").innerHTML =
-            "<h2>發生錯誤</h2><pre style='text-align:left; padding:12px; white-space:pre-wrap;'>" +
-            String(error) +
-            "</pre>";
+          setState(
+            "state-err",
+            "發生錯誤",
+            "目前無法完成驗證流程，我們仍會協助您前往官方帳號。",
+            "即將導向"
+          );
+          setTimeout(() => {
+            window.location.replace(OA_URL);
+          }, 1100);
         }
       }
 
