@@ -44,10 +44,36 @@
         "https://line-flower-shop-f54f9c20b157.herokuapp.com/api/save_referral";
 
       function getRefFromUrl() {
-        // 只用標準 URL query 解析（LIFF 沒有 getSearch 這種 API）
+        // 1) 先抓正常 query: ?ref=KOL
         const params = new URLSearchParams(window.location.search || "");
-        const ref = params.get("ref");
-        return ref && ref.trim() ? ref.trim() : null;
+        const directRef = params.get("ref");
+        if (directRef && directRef.trim()) return directRef.trim();
+
+        // 2) 再抓 LIFF 常見的包裝: ?liff.state=%3Fref%3DKOL
+        const liffState = params.get("liff.state");
+        if (liffState) {
+          const decoded = decodeURIComponent(liffState); // 可能是 "?ref=KOL" 或 "something?ref=KOL"
+          // 把裡面的 query 再解析一次
+          const q = decoded.includes("?") ? decoded.split("?").pop() : decoded;
+          const innerParams = new URLSearchParams(
+            q.startsWith("?") ? q.slice(1) : q
+          );
+          const innerRef = innerParams.get("ref");
+          if (innerRef && innerRef.trim()) return innerRef.trim();
+        }
+
+        // 3) 少數情況 ref 在 hash: https://.../#/?ref=KOL
+        const hash = window.location.hash || "";
+        if (hash.includes("ref=")) {
+          const hashQuery = hash.includes("?")
+            ? hash.split("?").pop()
+            : hash.replace(/^#/, "");
+          const hashParams = new URLSearchParams(hashQuery);
+          const hashRef = hashParams.get("ref");
+          if (hashRef && hashRef.trim()) return hashRef.trim();
+        }
+
+        return null;
       }
 
       function renderDebug(currentUserId, referrerId, stepText) {
