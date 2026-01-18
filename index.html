@@ -153,8 +153,9 @@
               }
             } catch (err) {
               console.error("API Error:", err);
-              document.getElementById("api-step").innerText =
-                "❌ 網路錯誤或逾時，即將跳轉...";
+              document.getElementById("api-step").innerText = `❌ ${
+                err?.name || "Error"
+              }: ${err?.message || err}，即將跳轉...`;
             }
           } else {
             document.getElementById("api-step").innerText =
