@@ -38,77 +38,113 @@
     </div>
 
     <script>
+      const LIFF_ID = "2008384616-2W4GzZeB";
+      const OA_URL = "https://line.me/R/ti/p/@638ccvfy";
+      const API_URL =
+        "https://line-flower-shop-f54f9c20b157.herokuapp.com/api/save_referral";
+
+      function getRefFromUrl() {
+        // 只用標準 URL query 解析（LIFF 沒有 getSearch 這種 API）
+        const params = new URLSearchParams(window.location.search || "");
+        const ref = params.get("ref");
+        return ref && ref.trim() ? ref.trim() : null;
+      }
+
+      function renderDebug(currentUserId, referrerId, stepText) {
+        document.getElementById("status").innerHTML = `
+          <div style="text-align:left; padding:20px;">
+            <p>👤 用戶: ${
+              currentUserId ? currentUserId.substring(0, 8) + "..." : "尚未取得"
+            }</p>
+            <p>🔗 推薦人: ${referrerId || "無"}</p>
+            <p id="api-step">${stepText || ""}</p>
+          </div>
+        `;
+      }
+
+      async function postReferral(newUser, referrer) {
+        // 避免網路卡死：加個 timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+          const response = await fetch(API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ new_user: newUser, referrer }),
+            signal: controller.signal,
+          });
+          return response.ok;
+        } finally {
+          clearTimeout(timeoutId);
+        }
+      }
+
       async function main() {
         try {
-          // 1. 初始化 LIFF
-          await liff.init({ liffId: "2008384616-2W4GzZeB" });
+          // A) 先在「登入前」抓 ref，並暫存，避免 login redirect 後丟失
+          const refFromUrl = getRefFromUrl();
+          if (refFromUrl) {
+            sessionStorage.setItem("referrerId", refFromUrl);
+          }
 
+          // B) 初始化 LIFF
+          await liff.init({ liffId: LIFF_ID });
+
+          // C) 未登入就登入（redirectUri 用當前網址，盡量保留參數）
           if (!liff.isLoggedIn()) {
-            liff.login();
+            renderDebug(null, refFromUrl, "🔐 尚未登入，準備登入...");
+            liff.login({ redirectUri: window.location.href });
             return;
           }
 
+          // D) 取得使用者 ID
           const profile = await liff.getProfile();
           const currentUserId = profile.userId;
 
-          // 2. 終極參數抓取 (解決所有轉址遺失問題)
-          const search = liff.getSearch() || window.location.search;
-          const urlParams = new URLSearchParams(search);
-          let referrerId = urlParams.get("ref");
+          // E) 登入後再拿一次 ref（優先 URL，其次 sessionStorage）
+          const referrerId =
+            getRefFromUrl() || sessionStorage.getItem("referrerId");
 
-          // 畫面顯示進度 (Debug 用)
-          document.getElementById("status").innerHTML = `
-            <div style="text-align:left; padding:20px;">
-                <p>👤 用戶: ${currentUserId.substring(0, 8)}...</p>
-                <p>🔗 推薦人: ${referrerId || "無"}</p>
-                <p id="api-step">⏳ 準備通訊...</p>
-            </div>
-        `;
+          renderDebug(currentUserId, referrerId, "⏳ 準備通訊...");
 
-          // 3. 呼叫 API (嚴格等待結果)
+          // F) 寫入推薦關係
           if (referrerId && currentUserId && referrerId !== currentUserId) {
             document.getElementById("api-step").innerText =
               "🚀 正在寫入推薦紀錄...";
 
             try {
-              const response = await fetch(
-                "https://line-flower-shop-f54f9c20b157.herokuapp.com/api/save_referral",
-                {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify({
-                    new_user: currentUserId,
-                    referrer: referrerId,
-                  }),
-                }
-              );
+              const ok = await postReferral(currentUserId, referrerId);
 
-              if (response.ok) {
+              if (ok) {
                 document.getElementById("api-step").innerText =
                   "✅ 紀錄成功！正在導向...";
                 console.log("Save Success");
               } else {
                 document.getElementById("api-step").innerText =
                   "⚠️ 紀錄失敗，但即將跳轉...";
+                console.warn("Save Failed: response not ok");
               }
             } catch (err) {
               console.error("API Error:", err);
               document.getElementById("api-step").innerText =
-                "❌ 網路錯誤，即將跳轉...";
+                "❌ 網路錯誤或逾時，即將跳轉...";
             }
           } else {
             document.getElementById("api-step").innerText =
               "ℹ️ 無推薦資訊，直接跳轉...";
           }
 
-          // 4. 最後才跳轉 (延遲 800ms 確保封包送出)
+          // G) 最後跳轉（短延遲）
           setTimeout(() => {
-            window.location.href = "https://line.me/R/ti/p/@638ccvfy";
+            window.location.replace(OA_URL);
           }, 800);
         } catch (error) {
           console.error(error);
           document.getElementById("status").innerHTML =
-            "<h2>發生錯誤</h2><p>" + error + "</p>";
+            "<h2>發生錯誤</h2><pre style='text-align:left; padding:12px; white-space:pre-wrap;'>" +
+            String(error) +
+            "</pre>";
         }
       }
 
